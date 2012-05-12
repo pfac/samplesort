@@ -1,2 +1,17 @@
+#	Executables
+mpi
+omp
+seq
+qsort
+
 #	Compiled object filed
 *.o
+
+#	VIM temporary files
+*.swp
+
+#	System files
+.DS_Store
+
+#	Input folders
+input/*
