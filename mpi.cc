@@ -466,7 +466,10 @@ int main ( int argc , char *argv[] )
 		// 	cerr << keys[n] << ' ';
 		// cerr << endl;
 
-#ifndef	TK_PROFILE
+#ifdef	TK_PROFILE
+		sw.stop();
+		cout << sw.last().microseconds() << endl;
+#else
 		for (long unsigned n = 0; n < nkeys; ++n)
 			cout << keys[n] << endl;
 #endif
@@ -484,13 +487,6 @@ int main ( int argc , char *argv[] )
 	delete[] samples;
 	delete[] partition;
 
-#ifdef	TK_PROFILE
-	if (!mpi_rank)
-	{
-		sw.stop();
-		cout << sw.last().microseconds() << endl;
-	}
-#endif
 
 	MPI_Finalize();
 	
