@@ -2,32 +2,43 @@ CXX			=	g++
 MPICXX		=	mpic++
 CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -std=c++0x -pedantic -O3 -I.
 
-EXECS		=	mpi qsort
+EXECS		=	mpi omp seq qsort
 
-INPUT		=	int.txt 3
+INPUT		=	input/10M.txt 5
+
+MPINP		=	4
 
 LINK.o = $(CXX) $(TARGET_ARCH) $(LDFLAGS)
 
-.PHONY:	clean
+
+.PHONY:	clean test
 
 test-%:	%
-	mpirun -np 4 $< $(INPUT)
+	$< $(INPUT)
 
 all:	$(EXECS)
 
 profile: CXXFLAGS+=-DTK_PROFILE
 profile: $(EXECS)
 
-mpi: CXX=$(MPICXX)
-mpi: mpi.o ccut-array.o
+test:	$(EXECS:%=test-%)
 
-qsort: ccut-array.o
+test-profile: profile test
+
+test-mpi:	mpi
+	mpirun -np $(MPINP) $< $(INPUT)
+
+mpi: CXX=$(MPICXX)
+
+omp: LDFLAGS+=-fopenmp
+
+mpi omp seq qsort: ccut-array.o
 
 mpi.o: CXX=$(MPICXX)
-mpi.o: ccut-array.hpp ccut-array-inl.hpp
 
-qsort.o: ccut-array.hpp ccut-array-inl.hpp
+omp.o: CXXFLAGS+=-fopenmp
 
+mpi.o omp.o seq.o qsort.o: ccut-array.hpp ccut-array-inl.hpp
 
 clean:
 	$(RM) *.o $(EXECS)
