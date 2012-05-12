@@ -9,6 +9,9 @@ using std::endl;
 #include "ccut-array.hpp"
 using ccut::LArray;
 
+#ifdef	TK_PROFILE
+#include "tk/stopwatch.hpp"
+#endif
 
 
 void diveven ( long unsigned x , long unsigned y , long unsigned a[] )
@@ -42,6 +45,7 @@ int main ( int argc , char *argv[] )
 		throw(EINVAL);
 	}
 
+
 	int mpi_rank;//	process rank
 	int mpi_size;//	number of processes
 	long * partition;
@@ -51,6 +55,12 @@ int main ( int argc , char *argv[] )
 	MPI_Init (&argc, &argv);
 	MPI_Comm_rank (MPI_COMM_WORLD, &mpi_rank);
 	MPI_Comm_size (MPI_COMM_WORLD, &mpi_size);
+
+#ifdef	TK_PROFILE
+	tk::Stopwatch sw;
+	if (!mpi_rank)
+		sw.start();
+#endif
 
 		// //debug
 		// for ( int r = 0 ; r < mpi_size ; ++r )
@@ -456,9 +466,10 @@ int main ( int argc , char *argv[] )
 		// 	cerr << keys[n] << ' ';
 		// cerr << endl;
 
-
+#ifndef	TK_PROFILE
 		for (long unsigned n = 0; n < nkeys; ++n)
 			cout << keys[n] << endl;
+#endif
 
 
 		delete[] keys;
@@ -472,6 +483,14 @@ int main ( int argc , char *argv[] )
 	delete[] pivots;
 	delete[] samples;
 	delete[] partition;
+
+#ifdef	TK_PROFILE
+	if (!mpi_rank)
+	{
+		sw.stop();
+		cout << sw.last().microseconds() << endl;
+	}
+#endif
 
 	MPI_Finalize();
 	
