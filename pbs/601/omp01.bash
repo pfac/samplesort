@@ -10,8 +10,8 @@
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
 #
-#PBS -e data/pbs.out/omp01.601.err
-#PBS -o data/pbs.out/omp01.601.out
+#PBS -e ../../data/pbs.out/omp01.601.err
+#PBS -o ../../data/pbs.out/omp01.601.out
 #
 runs=10;
 cd "$PBS_O_WORKDIR";
