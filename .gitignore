@@ -14,4 +14,5 @@ qsort
 .DS_Store
 
 #	Input folders
-input/*
+input*
+data*
