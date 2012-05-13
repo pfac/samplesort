@@ -16,6 +16,10 @@ LINK.o = $(CXX) $(TARGET_ARCH) $(LDFLAGS)
 test-%:	%
 	$< $(INPUT)
 
+%.mpio: CXX=$(MPICXX)
+%.mpio: %.cc
+	$(COMPILE.cc) $(OUTPUT_OPTION) $<
+
 all:	$(EXECS)
 
 profile: CXXFLAGS+=-DTK_PROFILE
@@ -29,10 +33,11 @@ test-mpi:	mpi
 	mpirun -np $(MPINP) $< $(INPUT)
 
 mpi: CXX=$(MPICXX)
+mpi: ccut-array.mpio
 
 omp: LDFLAGS+=-fopenmp
 
-mpi omp seq qsort: ccut-array.o
+omp seq qsort: ccut-array.o
 
 mpi.o: CXX=$(MPICXX)
 
@@ -41,4 +46,4 @@ omp.o: CXXFLAGS+=-fopenmp
 mpi.o omp.o seq.o qsort.o: ccut-array.hpp ccut-array-inl.hpp
 
 clean:
-	$(RM) *.o $(EXECS)
+	$(RM) *.o *.mpio $(EXECS)

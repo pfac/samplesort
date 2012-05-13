@@ -40,7 +40,7 @@ int main ( int argc , char *argv[] )
 		std::cerr
 			<<	"Usage: "
 			<<	argv[0]
-			<<	" <int_array_filename>"
+			<<	" <int_array_filename> [<processors>]"
 			<<	std::endl;
 		throw(EINVAL);
 	}
@@ -51,7 +51,11 @@ int main ( int argc , char *argv[] )
 #endif
 
 
-	int processors = omp_get_num_procs ();
+	int processors;
+	if (argc > 2)
+		processors = strtol (argv[2], NULL, 0);
+	else
+		processors = omp_get_num_procs ();
 
 
 	// #pragma omp parallel num_threads(processors)
