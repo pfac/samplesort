@@ -13,6 +13,8 @@
 #PBS -e ../../data/pbs.out/mpi96.601.err
 #PBS -o ../../data/pbs.out/mpi96.601.out
 #
+#PBS -V
+#
 runs=10;
 cd "$PBS_O_WORKDIR";
 module load gnu/openmpi;
