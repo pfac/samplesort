@@ -4,8 +4,8 @@
 #
 #PBS -N samplesort-mpi06
 #
-#PBS -l nodes=1:r601:ppn=24
-#PBS -l walltime=1:00:00
+#PBS -l nodes=1:hex:ppn=24
+#PBS -l walltime=30:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
@@ -13,11 +13,13 @@
 #PBS -e ../../data/pbs.out/mpi06.601.err
 #PBS -o ../../data/pbs.out/mpi06.601.out
 #
+#PBS -V
+#
 runs=10;
 cd "$PBS_O_WORKDIR";
 module load gnu/openmpi;
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	mpirun -np 6 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/10M.txt;
+	mpirun -np 6 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/512MB.txt;
 done;
 

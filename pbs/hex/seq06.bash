@@ -4,8 +4,8 @@
 #
 #PBS -N samplesort-seq06
 #
-#PBS -l nodes=1:r601:ppn=24
-#PBS -l walltime=1:00:00
+#PBS -l nodes=1:hex:ppn=24
+#PBS -l walltime=30:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
@@ -17,6 +17,6 @@ runs=10;
 cd "$PBS_O_WORKDIR";
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	./seq ../../data/input/10M.txt 6;
+	./seq ../../data/input/512MB.txt 6;
 done;
 
