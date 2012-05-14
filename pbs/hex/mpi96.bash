@@ -4,7 +4,7 @@
 #
 #PBS -N samplesort-mpi96
 #
-#PBS -l nodes=1:hex:ppn=24
+#PBS -l nodes=4:hex:ppn=24
 #PBS -l walltime=5:00
 #
 #PBS -M pdrcosta90@gmail.com
