@@ -17,6 +17,6 @@ runs=10;
 cd "$PBS_O_WORKDIR";
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	./seq ../../data/input/512MB.txt 24;
+	./seq ../../data/input/64MB.txt 24;
 done;
 

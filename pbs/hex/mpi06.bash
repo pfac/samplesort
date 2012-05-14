@@ -20,6 +20,6 @@ cd "$PBS_O_WORKDIR";
 module load gnu/openmpi;
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	mpirun -np 6 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/512MB.txt;
+	mpirun -np 6 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/64MB.txt;
 done;
 
