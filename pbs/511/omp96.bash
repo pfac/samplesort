@@ -1,17 +1,17 @@
 #!/bin/bash
-# PBS Script for the SeARCH Group hex
+# PBS Script for the SeARCH Group 511
 # 	Sequential Samplesort
 #
 #PBS -N samplesort-omp96
 #
-#PBS -l nodes=1:hex:ppn=24
+#PBS -l nodes=1:r511:ppn=24
 #PBS -l walltime=30:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
 #
-#PBS -e ../../data/pbs.out/omp96.hex.err
-#PBS -o ../../data/pbs.out/omp96.hex.out
+#PBS -e ../../data/pbs.out/omp96.511.err
+#PBS -o ../../data/pbs.out/omp96.511.out
 #
 runs=10;
 cd "$PBS_O_WORKDIR";
