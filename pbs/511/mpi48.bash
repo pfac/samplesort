@@ -5,7 +5,7 @@
 #PBS -N samplesort-mpi48
 #
 #PBS -l nodes=2:r511:ppn=24
-#PBS -l walltime=30:00
+#PBS -l walltime=5:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe

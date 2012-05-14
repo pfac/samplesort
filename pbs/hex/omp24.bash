@@ -5,7 +5,7 @@
 #PBS -N samplesort-omp24
 #
 #PBS -l nodes=1:hex:ppn=24
-#PBS -l walltime=30:00
+#PBS -l walltime=5:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
