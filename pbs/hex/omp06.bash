@@ -5,7 +5,7 @@
 #PBS -N samplesort-omp06
 #
 #PBS -l nodes=1:hex:ppn=24
-#PBS -l walltime=5:00
+#PBS -l walltime=30:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
@@ -17,6 +17,6 @@ runs=10;
 cd "$PBS_O_WORKDIR";
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	./omp ../../data/input/64MB.txt 6;
+	./omp ../../data/input/512MB.txt 6;
 done;
 
