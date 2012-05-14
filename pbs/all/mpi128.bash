@@ -4,7 +4,7 @@
 #
 #PBS -N samplesort-mpi128
 #
-#PBS -l nodes=128
+#PBS -l procs=128
 #PBS -l walltime=30:00
 #
 #PBS -M pdrcosta90@gmail.com
