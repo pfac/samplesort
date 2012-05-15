@@ -19,6 +19,6 @@ runs=100;
 cd "$PBS_O_WORKDIR";
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	mpirun -np 2 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/512MB.txt;
+	/opt/openmpi-myrinet_mx/bin/mpirun -np 2 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/512MB.txt;
 done;
 
