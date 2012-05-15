@@ -1,11 +1,11 @@
 #!/bin/bash
 # PBS Script for the SeARCH Group hex
-# 	Sequential Samplesort
+# 	Distributed Samplesort
 #
 #PBS -N samplesort-mpi032
 #
-#PBS -l nodes=16:r101:myri:ppn=4
-#PBS -l walltime=30:00
+#PBS -l nodes=8:r101:myri:ppn=4
+#PBS -l walltime=2:00:00
 #
 #PBS -M pdrcosta90@gmail.com
 #PBS -m abe
@@ -15,9 +15,8 @@
 #
 #PBS -V
 #
-runs=10;
+runs=100;
 cd "$PBS_O_WORKDIR";
-module load gnu/openmpi;
 N=`cat mpi01.bash | wc -l | grep -o "[[:digit:]]\+"`;
 for (( i = 0 ; i < $runs ; ++i ));
 do
