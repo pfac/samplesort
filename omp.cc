@@ -14,6 +14,8 @@ using ccut::LArray;
 #include "tk/stopwatch.hpp"
 #endif
 
+#define min(x,y) ((x) < (y) ? (x) : (y))
+
 void diveven ( long unsigned x , long unsigned y , long unsigned a[] )
 {
 	long unsigned d;
@@ -40,7 +42,7 @@ int main ( int argc , char *argv[] )
 		std::cerr
 			<<	"Usage: "
 			<<	argv[0]
-			<<	" <int_array_filename> [<processors>]"
+			<<	" <int_array_filename> [<partitions>]"
 			<<	std::endl;
 		throw(EINVAL);
 	}
@@ -51,11 +53,12 @@ int main ( int argc , char *argv[] )
 #endif
 
 
-	int processors;
-	if (argc > 2)
-		processors = strtol (argv[2], NULL, 0);
-	else
-		processors = omp_get_num_procs ();
+	// int processors;
+	// if (argc > 2)
+	// 	processors = strtol (argv[2], NULL, 0);
+	// else
+	// 	processors = omp_get_num_procs ();
+
 
 
 	// #pragma omp parallel num_threads(processors)
@@ -69,23 +72,45 @@ int main ( int argc , char *argv[] )
 	// }
 
 	LArray keys( argv[1] );
-	// long unsigned nprocessors = strtoul( argv[2] , NULL , 0 );
+	long processors;		//<	Number of threads to ask the parallel zone.
+	long partitions;		//<	Number of partitions which will compose the array to sort.
+	
+	if (argc > 2)
+	{
+		partitions = strtol (argv[2], NULL, 0);
+		processors = min (partitions, omp_get_num_procs ());
+	}
+	else
+		partitions = processors = omp_get_num_procs ();
 
-	long unsigned * psizes = new long unsigned[processors];
-	long unsigned * pfirsts = new long unsigned[processors];
 
-	diveven (keys.length, processors, psizes);
+	long unsigned parts_sqr = partitions * partitions;
+	long parts_lst = partitions - 1;
+	long unsigned * psizes = new long unsigned[partitions];		//<	Size of each partition.
+	long unsigned * pfirsts = new long unsigned[partitions];	//<	Offset of each partition.
+	long unsigned * samp_ints = new long unsigned[parts_sqr];
+	long * samples = new long[parts_sqr];
+	long * pivots = new long[parts_lst];
+	long unsigned * piv_ints = new long unsigned[partitions];
+	long unsigned * sfirsts = new long unsigned[parts_sqr];
+	long unsigned * ssizes = new long unsigned[parts_sqr];
+	long * partfinal = new long[keys.length];
+
+
+	//	CALCULATE PARTITIONS
+	diveven (keys.length, partitions, psizes);
 
 	
 	pfirsts[0] = 0;
-	for ( int r = 1 ; r < processors ; ++r )
-		pfirsts[r] = pfirsts[r-1] + psizes[r-1];
+	for (long partition = 1 ; partition < partitions ; ++partition )
+		pfirsts[partition] = pfirsts[partition-1] + psizes[partition-1];
 
 
 	//	LOCAL SORT
-	#pragma omp parallel num_threads(processors)
+	#pragma omp parallel for num_threads(processors) schedule(static)
+	for (long partition = 0; partition < partitions; ++partition)
 	{
-		int thread = omp_get_thread_num();
+		//int thread = omp_get_thread_num();
 		// int threads = omp_get_num_threads();
 		// #pragma omp critical
 		// {
@@ -94,7 +119,7 @@ int main ( int argc , char *argv[] )
 		// 		cerr << keys.data[pfirsts[thread] + n] << ' ';
 		// 	cerr << endl;	
 		// }
-		qsort (keys.data + pfirsts[thread], psizes[thread], sizeof(long), comparel);
+		qsort (keys.data + pfirsts[partition], psizes[partition], sizeof(long), comparel);
 		// #pragma omp critical
 		// {
 		// 	cerr << "Thread " << thread << " of " << threads << '/' << processors << endl << '\t';
@@ -102,20 +127,17 @@ int main ( int argc , char *argv[] )
 		// 		cerr << keys.data[pfirsts[thread] + n] << ' ';
 		// 	cerr << endl;	
 		// }
-	}
+	// }
 
 
-	//	SAMPLING
-	long unsigned procs_sqr = processors * processors;
-	long unsigned * samp_ints = new long unsigned[procs_sqr];
-	long * samples = new long[procs_sqr];
-
-	#pragma omp parallel num_threads(processors)
-	{
-		int thread = omp_get_thread_num();
+	// //	SAMPLING
+	// #pragma omp parallel for num_threads(processors) schedule(static)
+	// for (long partition = 0; partition < partitions; ++partition)
+	// {
+		// int thread = omp_get_thread_num();
 			// int threads = omp_get_num_threads();
 
-		diveven (psizes[thread], processors, samp_ints + thread * processors);
+		diveven (psizes[partition], partitions, samp_ints + partition * partitions);
 			//debug
 			// #pragma omp critical
 			// {
@@ -126,10 +148,10 @@ int main ( int argc , char *argv[] )
 			// 	cerr << endl;	
 			// }
 		long unsigned w = 0;
-		for (int r = 0; r < processors; ++r)
+		for (long p = 0; p < partitions; ++p)
 		{
-			samples[thread * processors + r] = keys.data[pfirsts[thread] + w];
-			w += samp_ints[thread * processors + r];
+			samples[partition * partitions + p] = keys.data[pfirsts[partition] + w];
+			w += samp_ints[partition * partitions + p];
 		}
 			// #pragma omp critical
 			// {
@@ -151,7 +173,7 @@ int main ( int argc , char *argv[] )
 		// cerr << endl;	
 
 	//	ORDER SAMPLES
-	qsort (samples, procs_sqr, sizeof(long), comparel);
+	qsort (samples, parts_sqr, sizeof(long), comparel);
 		// cerr << "Samples (ordered): " << endl << '\t';
 		// for (int n = 0; n < procs_sqr; ++n)
 		// 	cerr << samples[n] << ' ';
@@ -159,12 +181,7 @@ int main ( int argc , char *argv[] )
 
 
 	//	FIND PIVOTS
-	int procs_lst = processors - 1;
-	// long unsigned procs_hlf = processors / 2;
-	long * pivots = new long[procs_lst];
-	long unsigned * piv_ints = new long unsigned[processors];
-
-	diveven (procs_sqr, processors, piv_ints);
+	//diveven (procs_sqr, processors, piv_ints);
 		//debug
 		// cerr << "Pivot intervals: " << endl << '\t';
 		// for (int n = 0; n < procs_lst; ++n)
@@ -172,10 +189,10 @@ int main ( int argc , char *argv[] )
 		// cerr << endl;
 	{
 		long unsigned w = piv_ints[0];
-		for (int p = 1; p < processors; ++p)
+		for (long p = 1; p < partitions; ++p)
 		{
 			pivots[p-1] = samples[w];
-			w += piv_ints[p];
+			w += partitions;
 		}
 	}
 		//debug
@@ -188,34 +205,32 @@ int main ( int argc , char *argv[] )
 
 
 	//	SLICES
-	long unsigned * sfirsts = new long unsigned[procs_sqr];
-	long unsigned * ssizes = new long unsigned[procs_sqr];
-
-	#pragma omp parallel num_threads(processors)
+	#pragma omp parallel for num_threads(processors) schedule(static)
+	for (long partition = 0; partition < partitions; ++partition)
 	{
-		int thread = omp_get_thread_num ();
+		// int thread = omp_get_thread_num ();
 		int i = 0;
 		long unsigned j = 0;
 		long unsigned n = 0;
-		long unsigned l = thread * processors;
+		long unsigned l = partition * partitions;
 
-		sfirsts[l] = pfirsts[thread];
-		while (n < psizes[thread])
+		sfirsts[l] = pfirsts[partition];
+		while (n < psizes[partition])
 		{
-			if (i < procs_lst && keys.data[pfirsts[thread] + n] > pivots[i])
+			if (i < parts_lst && keys.data[pfirsts[partition] + n] > pivots[i])
 			{
 				ssizes[l + i] = n - j;
 				j = n;
 				i += 1;
-				sfirsts[l + i] = n + pfirsts[thread];
+				sfirsts[l + i] = n + pfirsts[partition];
 			}
 			else
 				n += 1;
 		}
 		ssizes[l + i] = n - j;
-		for (i += 1; i < processors; ++i)
+		for (i += 1; i < partitions; ++i)
 		{
-			sfirsts[l + i] = n + pfirsts[thread];;
+			sfirsts[l + i] = n + pfirsts[partition];;
 			ssizes[l + i] = 0;
 		}
 			//debug
@@ -247,15 +262,14 @@ int main ( int argc , char *argv[] )
 
 
 	//	TRADE - SORT - GATHER
-	long * partfinal = new long[keys.length];
-
-	#pragma omp parallel num_threads(processors)
+	#pragma omp parallel for num_threads(processors) schedule(static)
+	for (long partition = 0; partition < partitions; ++partition)
 	{
-		int thread = omp_get_thread_num ();
+		// int thread = omp_get_thread_num ();
 
-		psizes[thread] = 0;
-		for (int r = 0; r < processors; ++r)
-			psizes[thread] += ssizes[r * processors + thread];
+		psizes[partition] = 0;
+		for (long p = 0; p < partitions; ++p)
+			psizes[partition] += ssizes[p * partitions + partition];
 
 			//debug
 			// int threads = omp_get_num_threads();
@@ -267,23 +281,23 @@ int main ( int argc , char *argv[] )
 	}
 
 	pfirsts[0] = 0;
-	for (int r = 1; r < processors; ++r)
-		pfirsts[r] = pfirsts[r-1] + psizes[r-1];
+	for (long p = 1; p < partitions; ++p)
+		pfirsts[p] = pfirsts[p-1] + psizes[p-1];
 		// //debug
 		// cerr << "Final partitions:" << endl << '\t';
 		// for (unsigned long r = 0; r < processors; ++r)
 		// 	cerr << pfirsts[r] << '/' << psizes[r] << ' ';
 		// cerr << endl;
 
-	#pragma omp parallel num_threads(processors)
-	// for (long unsigned t = 0; t < processors; ++t)
+	#pragma omp parallel for num_threads(processors) schedule(static)
+	for (long partition = 0; partition < partitions; ++partition)
 	{
-		int thread = omp_get_thread_num ();
+		// int thread = omp_get_thread_num ();
 		// int thread = t;
-		long unsigned n = pfirsts[thread];
-		for (int r = 0; r < processors; ++r)
+		long unsigned n = pfirsts[partition];
+		for (long p = 0; p < partitions; ++p)
 		{
-			long unsigned i = r * processors + thread;
+			long unsigned i = p * partitions + partition;
 			for (long unsigned s = 0; s < ssizes[i]; ++s)
 				partfinal[n++] = keys.data[sfirsts[i] + s];
 		}
@@ -296,7 +310,7 @@ int main ( int argc , char *argv[] )
 			// 		cerr << partfinal[pfirsts[thread] + n] << ' ';
 			// 	cerr << endl;
 			// }
-		qsort (partfinal + pfirsts[thread], psizes[thread], sizeof(long), comparel);
+		qsort (partfinal + pfirsts[partition], psizes[partition], sizeof(long), comparel);
 	}
 	// cerr << "Result:" << endl << '\t';
 	// for (long unsigned n = 0; n < keys.length; ++n)
