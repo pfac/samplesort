@@ -1,6 +1,7 @@
 CXX			=	g++
 MPICXX		=	mpic++
-CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -std=c++0x -pedantic -O3 -I.
+#CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -std=c++0x -pedantic -O3 -I.
+CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -O3 -I.
 
 EXECS		=	mpi omp seq qsort
 

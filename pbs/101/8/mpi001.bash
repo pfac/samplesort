@@ -4,7 +4,7 @@
 #
 #PBS -N samplesort-mpi001
 #
-#PBS -l nodes=8:r101:myri:ppn=4
+#PBS -l nodes=8:r101:ppn=4
 #PBS -l walltime=30:00
 #
 #PBS -M pdrcosta90@gmail.com
@@ -19,6 +19,6 @@ runs=20;
 cd "$PBS_O_WORKDIR";
 for (( i = 0 ; i < $runs ; ++i ));
 do
-	mpirun -np 1 -machinefile $PBS_NODEFILE -loadbalance -mca mpi ../../data/input/512MB.txt;
+	mpirun -np 1 -machinefile $PBS_NODEFILE -loadbalance mpi ../../data/input/512MB.txt;
 done;
 
