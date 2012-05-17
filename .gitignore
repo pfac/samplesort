@@ -6,6 +6,7 @@ qsort
 
 #	Compiled object filed
 *.o
+*.mpio
 
 #	VIM temporary files
 *.swp

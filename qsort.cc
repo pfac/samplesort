@@ -4,6 +4,7 @@ using std::cout;
 using std::endl;
 
 #include <errno.h>
+#include <cstdlib>
 
 #include "ccut-array.hpp"
 using ccut::LArray;

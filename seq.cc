@@ -4,6 +4,8 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
+#include <cstdlib>
+
 #include <unistd.h>
 
 #include "ccut-array.hpp"

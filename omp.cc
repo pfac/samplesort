@@ -1,8 +1,10 @@
-#include <cerrno>
 #include <iostream>
 using std::cerr;
 using std::cout;
 using std::endl;
+
+#include <cerrno>
+#include <cstdlib>
 
 #include <omp.h>
 #include <unistd.h>
@@ -188,7 +190,7 @@ int main ( int argc , char *argv[] )
 		// 	cerr << piv_ints[n] << ' ';
 		// cerr << endl;
 	{
-		long unsigned w = piv_ints[0];
+		long unsigned w = 0;
 		for (long p = 1; p < partitions; ++p)
 		{
 			pivots[p-1] = samples[w];
