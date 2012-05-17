@@ -93,7 +93,6 @@ int main ( int argc , char *argv[] )
 	long unsigned * samp_ints = new long unsigned[parts_sqr];
 	long * samples = new long[parts_sqr];
 	long * pivots = new long[parts_lst];
-	long unsigned * piv_ints = new long unsigned[partitions];
 	long unsigned * sfirsts = new long unsigned[parts_sqr];
 	long unsigned * ssizes = new long unsigned[parts_sqr];
 	long * partfinal = new long[keys.length];
@@ -202,8 +201,6 @@ int main ( int argc , char *argv[] )
 		// for (long unsigned n = 0; n < procs_lst; ++n)
 		// 	cerr << pivots[n] << ' ';
 		// cerr << endl;
-
-	delete[] piv_ints;
 
 
 	//	SLICES
