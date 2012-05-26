@@ -16,3 +16,19 @@ qsort
 
 #	Input folders
 data/*
+
+#	LaTeX generated files
+doc/*.aux
+doc/*.log
+doc/*.nav
+doc/*.out
+doc/*.pdf
+doc/*.synctex.gz
+doc/*.snm
+doc/*.toc
+doc/*.top
+doc/*.tui
+
+#	BibTeX generated files
+doc/*.bbl
+doc/*.blg
