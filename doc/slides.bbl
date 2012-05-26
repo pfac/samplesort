@@ -1,0 +1,20 @@
+\begin{thebibliography}{}
+
+\bibitem[Kale and Solomonik, 2010]{Kale2010}
+Kale, V. and Solomonik, E. (2010{\rm{}}).
+\newblock Parallel sorting pattern.
+\newblock In {\rm Proceedings of the 2010 Workshop on Parallel Programming
+  Patterns} ParaPLoP '10 pp. 10:1--10:12, ACM, New York, NY, USA.
+
+\bibitem[Li {\rm et~al.}, 1993]{Li1993}
+Li, X., Lu, P., Schaeffer, J., Shillington, J., Wong, P.~S.  and Shi, H.
+  (1993{\rm{}}).
+\newblock On the versatility of parallel sorting by regular sampling.
+\newblock {\rm Parallel Comput.} \emph{19}, 1079--1103.
+
+\bibitem[Quinn, 2004]{Quinn2004}
+Quinn, M. (2004{\rm{}}).
+\newblock {\rm Parallel Programming in C With Mpi and Openmp}.
+\newblock McGraw-Hill Higher Education, McGraw-Hill Higher Education.
+
+\end{thebibliography}
