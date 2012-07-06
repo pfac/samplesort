@@ -21,6 +21,8 @@ test-%:	%
 %.mpio: %.cc
 	$(COMPILE.cc) $(OUTPUT_OPTION) $<
 
+default: tbb
+
 all:	$(EXECS)
 
 profile: CXXFLAGS+=-DTK_PROFILE
@@ -36,15 +38,19 @@ test-mpi:	mpi
 mpi: CXX=$(MPICXX)
 mpi: ccut-array.mpio
 
-omp: LDFLAGS+=-fopenmp
-
-omp seq qsort: ccut-array.o
-
 mpi.o: CXX=$(MPICXX)
+
+omp: LDFLAGS+=-fopenmp
 
 omp.o: CXXFLAGS+=-fopenmp
 
-mpi.o omp.o seq.o qsort.o: ccut-array.hpp ccut-array-inl.hpp
+tbb: LDFLAGS += -L $(HOME)/src/tbb/lib -ltbb
+
+tbb.o: CXXFLAGS += -I $(HOME)/src/tbb/include
+
+omp seq tbb qsort: ccut-array.o
+
+mpi.o omp.o seq.o tbb.o qsort.o: ccut-array.hpp ccut-array-inl.hpp
 
 clean:
 	$(RM) *.o *.mpio $(EXECS)

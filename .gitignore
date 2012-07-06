@@ -2,6 +2,7 @@
 mpi
 omp
 seq
+tbb
 qsort
 
 #	Compiled object filed
