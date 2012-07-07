@@ -8,22 +8,31 @@
 
 #	EXEC		executable to run
 #	INPUT		input file, ascii matrix format (see int.txt)
-#	PARTITIONS	number of parallel partitions (defaults to the number of processors available)
+#	PARTMIN		minimum number of parallel partitions (defaults 1)
+#	PARTMAX		maximum number of parallel partitions (defaults to 8192)
 #	RUNS		number of runs (defaults to 1)
 
-if [ ! "$PARTITIONS" ]; then PARTITIONS=`cat "$PBS_NODEFILE" | wc -l`; fi;
+if [ ! "$PARTMIN" ]; then PARTMIN="1"; fi;
+if [ ! "$PARTMAX" ]; then PARTMAX="8192"; fi;
 if [ ! "$RUNS" ]; then RUNS="1"; fi;
 
 cd "$PBS_O_WORKDIR";
 
-R="1";
-while [ "$R" -le "$RUNS" ];
+PARTITIONS="$PARTMIN";
+while [ "$PARTITIONS" -le "$PARTMAX" ];
 do
-	if [ "$THREADS" ];
-	then
-		$EXEC "$INPUT" "$PARTITIONS" "$THREADS";
-	else
-		$EXEC "$INPUT" "$PARTITIONS";
-	fi;
-	R=$(( $R + 1 ));
+	R="1";
+	echo "$PARTITIONS partition(s)";
+	while [ "$R" -le "$RUNS" ];
+	do
+		if [ "$THREADS" ];
+		then
+			$EXEC "$INPUT" "$PARTITIONS" "$THREADS";
+		else
+			$EXEC "$INPUT" "$PARTITIONS";
+		fi;
+		R=$(( $R + 1 ));
+	done;
+	echo;
+	PARTITIONS=$(( $PARTITIONS * 2 ));
 done;
