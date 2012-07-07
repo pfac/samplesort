@@ -19,6 +19,10 @@ using ccut::LArray;
 #include "tk/stopwatch.hpp"
 #endif
 
+
+#define GRAINSIZE 2
+
+
 void roundrobin ( long unsigned x , long unsigned y , long unsigned a[] )
 {
 	long unsigned d;
@@ -219,7 +223,6 @@ struct TBB_MergerSorter {
 
 
 
-
 int main ( int argc , char *argv[] )
 {
 	if ( argc < 3 )
@@ -241,7 +244,8 @@ int main ( int argc , char *argv[] )
 	long unsigned processors = strtoul( argv[2] , NULL , 0 );
 
 	//	Initialize task scheduler
-	tbb::task_scheduler_init init(processors);
+	long threads = processors / GRAINSIZE;
+	tbb::task_scheduler_init init(threads);
 		// // debug
 		// tbb::task_scheduler_init init(1);
 
@@ -261,7 +265,7 @@ int main ( int argc , char *argv[] )
 	sorter.partitions.count = processors;
 	sorter.partitions.firsts = pfirsts;
 	sorter.partitions.sizes = psizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, 1), sorter);
+	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), sorter);
 		// // debug
 		// for (long unsigned p = 0; p < processors; ++p) {
 		// 	cerr << "Partition " << p << " of " << processors << endl;
@@ -313,7 +317,7 @@ int main ( int argc , char *argv[] )
 	sampler.partitions.count = processors;
 	sampler.partitions.firsts = pfirsts;
 	sampler.partitions.sizes = psizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, 1), sampler);
+	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), sampler);
 		// // debug
 		// cerr << "SAMPLES" << endl;
 		// for (long unsigned p = 0; p < processors; ++p) {
@@ -434,7 +438,7 @@ int main ( int argc , char *argv[] )
 	slicer.partitions.sizes = psizes;
 	slicer.slices.firsts = sfirsts;
 	slicer.slices.sizes = ssizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, 1), slicer);
+	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), slicer);
 
 
 	// 	TRADE - SORT - GATHER
@@ -455,7 +459,7 @@ int main ( int argc , char *argv[] )
 	trader.partitions.count = processors;
 	trader.partitions.sizes = psizes;
 	trader.slices.sizes = ssizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, 1), trader);
+	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), trader);
 
 	pfirsts[0] = 0;
 	for (unsigned long r = 1; r < processors; ++r)
@@ -497,7 +501,7 @@ int main ( int argc , char *argv[] )
 	mergesorter.partitions.sizes = psizes;
 	mergesorter.slices.firsts = sfirsts;
 	mergesorter.slices.sizes = ssizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, 1), mergesorter);
+	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), mergesorter);
 
 #ifdef	TK_PROFILE
 	sw.stop();

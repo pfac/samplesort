@@ -1,0 +1,16 @@
+#!/bin/bash
+#	autosubmitter for single node hex jobs
+
+SCRIPT="$1";
+EXEC="$2";
+INPUT="$3";
+PARTITIONS="$4";
+RUNS="$5";
+
+XNAME=`basename "$EXEC"`;
+NAME="${XNAME}-${PARTITIONS}";
+qsub	-v "EXEC=\"${EXEC}\",INPUT=\"${INPUT}\",PARTITIONS=\"${PARTITIONS}\",RUNS=\"${RUNS}\""\
+		-e "data/out/${NAME}.err"\
+		-o "data/out/${NAME}.out"\
+		-N "${NAME}"\
+		-l nodes="1:hex:f2.66:ppn=24" "$SCRIPT";
