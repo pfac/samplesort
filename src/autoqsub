@@ -4,12 +4,14 @@
 SCRIPT="$1";
 EXEC="$2";
 INPUT="$3";
-PARTITIONS="$4";
-RUNS="$5";
+THREADS="$4";
+PARTMIN="$5";
+PARTMAX="$6";
+RUNS="$7";
 
 XNAME=`basename "$EXEC"`;
-NAME="${XNAME}-${PARTITIONS}";
-qsub	-v "EXEC=\"${EXEC}\",INPUT=\"${INPUT}\",PARTITIONS=\"${PARTITIONS}\",RUNS=\"${RUNS}\""\
+NAME="${XNAME}-${THREADS}";
+qsub	-v "EXEC=\"${EXEC}\",INPUT=\"${INPUT}\",THREADS=\"${THREADS}\",PARTMIN=\"${PARTMIN}\",PARTMAX=\"${PARTMAX}\",RUNS=\"${RUNS}\""\
 		-e "data/out/${NAME}.err"\
 		-o "data/out/${NAME}.out"\
 		-N "${NAME}"\

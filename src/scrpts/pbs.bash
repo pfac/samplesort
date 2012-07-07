@@ -1,7 +1,7 @@
 #!/bin/bash
 #		pbs script for single node jobs
 #
-#PBS -l walltime=1:00:00
+#PBS -l walltime=2:00:00
 #PBS -M dev+pbs@pfac.info
 #PBS -m bea
 #
@@ -14,7 +14,7 @@
 
 if [ ! "$PARTMIN" ]; then PARTMIN="1"; fi;
 if [ ! "$PARTMAX" ]; then PARTMAX="8192"; fi;
-if [ ! "$RUNS" ]; then RUNS="1"; fi;
+if [ ! "$RUNS" ]; then RUNS="10"; fi;
 
 cd "$PBS_O_WORKDIR";
 
