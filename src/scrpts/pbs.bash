@@ -19,6 +19,11 @@ cd "$PBS_O_WORKDIR";
 R="1";
 while [ "$R" -le "$RUNS" ];
 do
-	$EXEC "$INPUT" "$PARTITIONS"
+	if [ "$THREADS" ];
+	then
+		$EXEC "$INPUT" "$PARTITIONS" "$THREADS";
+	else
+		$EXEC "$INPUT" "$PARTITIONS";
+	fi;
 	R=$(( $R + 1 ));
 done;

@@ -20,8 +20,6 @@ using ccut::LArray;
 #endif
 
 
-#define GRAINSIZE 2
-
 
 void roundrobin ( long unsigned x , long unsigned y , long unsigned a[] )
 {
@@ -207,7 +205,7 @@ struct TBB_MergerSorter {
 			}
 
 				// // debug
-				// cerr << "Partition " << p << " of " << processors << endl << '\t';
+				// cerr << "Partition " << p << " of " << partitions.count << endl << '\t';
 				// for (long unsigned n = 0; n < psizes[thread]; ++n)
 				// 	cerr << partfinal[pfirsts[thread] + n] << ' ';
 				// cerr << endl;
@@ -230,7 +228,7 @@ int main ( int argc , char *argv[] )
 		std::cerr
 			<<	"Usage: "
 			<<	argv[0]
-			<<	" <int_array_filename> <partitions>"
+			<<	" <int_array_filename> <partitions> [<threads>]"
 			<<	std::endl;
 		throw(EINVAL);
 	}
@@ -241,34 +239,41 @@ int main ( int argc , char *argv[] )
 #endif
 
 	LArray keys( argv[1] );
-	long unsigned processors = strtoul( argv[2] , NULL , 0 );
+	long unsigned partitions = strtoul( argv[2] , NULL , 0 );
 
 	//	Initialize task scheduler
-	long threads = processors / GRAINSIZE;
-	tbb::task_scheduler_init init(threads);
+	if (argc > 3) {
+		long unsigned threads = strtoul(argv[3], NULL, 0);
+		tbb::task_scheduler_init init(threads);
+	} else
+		tbb::task_scheduler_init init;
+	
 		// // debug
 		// tbb::task_scheduler_init init(1);
 
-	long unsigned * psizes = new long unsigned[processors];
-	long unsigned * pfirsts = new long unsigned[processors];
+	// long unsigned grainsize = ceil((double) partitions / (double) threads);
+	long unsigned grainsize = 1;
 
-	roundrobin (keys.length, processors, psizes);
+	long unsigned * psizes = new long unsigned[partitions];
+	long unsigned * pfirsts = new long unsigned[partitions];
+
+	roundrobin (keys.length, partitions, psizes);
 
 	pfirsts[0] = 0;
-	for (long unsigned r = 1 ; r < processors ; ++r )
+	for (long unsigned r = 1 ; r < partitions ; ++r )
 		pfirsts[r] = pfirsts[r-1] + psizes[r-1];
 
 
 	//	LOCAL SORT
 	TBB_Sorter sorter;
 	sorter.data = keys.data;
-	sorter.partitions.count = processors;
+	sorter.partitions.count = partitions;
 	sorter.partitions.firsts = pfirsts;
 	sorter.partitions.sizes = psizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), sorter);
+	parallel_for(tbb::blocked_range<long unsigned>(0, partitions, grainsize), sorter);
 		// // debug
-		// for (long unsigned p = 0; p < processors; ++p) {
-		// 	cerr << "Partition " << p << " of " << processors << endl;
+		// for (long unsigned p = 0; p < partitions; ++p) {
+		// 	cerr << "Partition " << p << " of " << partitions << endl;
 		// 	if (psizes[p]) {
 		// 		cerr << '\t' << keys.data[pfirsts[p]];
 		// 		for (long unsigned e = 1; e < psizes[p]; ++e) {
@@ -280,51 +285,25 @@ int main ( int argc , char *argv[] )
 
 
 	//	SAMPLING
-	long unsigned procs_sqr = processors * processors;
+	long unsigned procs_sqr = partitions * partitions;
 	long unsigned * samp_ints = new long unsigned[procs_sqr];
 	long * samples = new long[procs_sqr];
-
-	// // #pragma omp parallel num_threads(processors)
-	// for (long unsigned thread = 0; thread < processors; ++thread)
-	// {
-	// 	// int thread = omp_get_thread_num();
-	// 	roundrobin (psizes[thread], processors, samp_ints + thread * processors);
-
-	// 		// //debug
-	// 		// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-	// 		// cerr << "Size: " << psizes[thread] << endl << '\t';
-	// 		// for (int n = 0; n < processors; ++n)
-	// 		// 	cerr << samp_ints[thread * processors + n] << ' ';
-	// 		// cerr << endl;
-
-	// 	long unsigned w = 0;
-	// 	for (long unsigned r = 0; r < processors; ++r)
-	// 	{
-	// 		samples[thread * processors + r] = keys.data[pfirsts[thread] + w];
-	// 		w += samp_ints[thread * processors + r];
-	// 	}
-	// 		//debug
-	// 		// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-	// 		// for (int n = 0; n < processors; ++n)
-	// 		// 	cerr << samples[thread * processors + n] << ' ';
-	// 		// cerr << endl;
-	// }
 
 	TBB_Sampler sampler;
 	sampler.data = keys.data;
 	sampler.samples = samples;
 	sampler.intervals = samp_ints;
-	sampler.partitions.count = processors;
+	sampler.partitions.count = partitions;
 	sampler.partitions.firsts = pfirsts;
 	sampler.partitions.sizes = psizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), sampler);
+	parallel_for(tbb::blocked_range<long unsigned>(0, partitions, grainsize), sampler);
 		// // debug
 		// cerr << "SAMPLES" << endl;
-		// for (long unsigned p = 0; p < processors; ++p) {
-		// 	cerr << "Partition " << p << " of " << processors << endl;
-		// 	cerr << '\t' << samples[p * processors];
-		// 	for (long unsigned q = 1; q < processors; ++q)
-		// 		cerr << ' ' << samples[p * processors + q];
+		// for (long unsigned p = 0; p < partitions; ++p) {
+		// 	cerr << "Partition " << p << " of " << partitions << endl;
+		// 	cerr << '\t' << samples[p * partitions];
+		// 	for (long unsigned q = 1; q < partitions; ++q)
+		// 		cerr << ' ' << samples[p * partitions + q];
 		// 	cerr << endl;
 		// }
 
@@ -348,11 +327,11 @@ int main ( int argc , char *argv[] )
 
 
 	//	FIND PIVOTS
-	long unsigned procs_lst = processors - 1;
+	long unsigned procs_lst = partitions - 1;
 	long * pivots = new long[procs_lst];
-	long unsigned * piv_ints = new long unsigned[processors];
+	long unsigned * piv_ints = new long unsigned[partitions];
 
-	roundrobin (procs_sqr, processors, piv_ints);
+	roundrobin (procs_sqr, partitions, piv_ints);
 		//debug
 		// cerr << "Pivot intervals: " << endl << '\t';
 		// for (int n = 0; n < procs_lst; ++n)
@@ -360,7 +339,7 @@ int main ( int argc , char *argv[] )
 		// cerr << endl;
 	{
 		long unsigned w = piv_ints[0];
-		for (long unsigned p = 1; p < processors; ++p)
+		for (long unsigned p = 1; p < partitions; ++p)
 		{
 			pivots[p-1] = samples[w];
 			w += piv_ints[p];
@@ -380,128 +359,45 @@ int main ( int argc , char *argv[] )
 	long unsigned * sfirsts = new long unsigned[procs_sqr];
 	long unsigned * ssizes = new long unsigned[procs_sqr];
 
-	// // #pragma omp parallel num_threads(processors)
-	// for (long unsigned thread = 0; thread < processors; ++thread)
-	// {
-	// 	long unsigned i = 0;
-	// 	long unsigned j = 0;
-	// 	long unsigned n;
-	// 	long unsigned l = thread * processors;
-
-	// 	sfirsts[l] = pfirsts[thread];
-	// 	i = 0;
-	// 	j = 0;
-	// 	n = 0;
-	// 	while (n < psizes[thread])
-	// 	{
-	// 		if (i < procs_lst && keys.data[pfirsts[thread] + n] > pivots[i])
-	// 		{
-	// 			ssizes[l + i] = n - j;
-	// 			j = n;
-	// 			i += 1;
-	// 			sfirsts[l + i] = n + pfirsts[thread];
-	// 		}
-	// 		else
-	// 			n += 1;
-	// 	}
-	// 	ssizes[l + i] = n - j;
-	// 	for (i += 1; i < processors; ++i)
-	// 	{
-	// 		sfirsts[l + i] = n + pfirsts[thread];
-	// 		ssizes[l + i] = 0;
-	// 	}
-
-	// 		// //debug
-	// 		// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-	// 		// for (long unsigned n = 0; n < processors; ++n)
-	// 		// 	cerr << sfirsts[l + n] << '/' << ssizes[l + n]<< ' ';
-	// 		// cerr << endl;	
-
-	// 		// debug
-	// 		cerr << "Thread " << thread << " of " << processors << endl;
-	// 		for (long unsigned s = 0; s < processors; ++s)
-	// 		{
-	// 			cerr << "\tSlice " << s << endl << "\t\t";
-	// 			for (long unsigned n = 0; n < ssizes[l + s]; ++n)
-	// 				cerr << keys.data[sfirsts[l + s] + n] << ' ';
-	// 			cerr << endl;
-	// 		}
-	// 		cerr << endl;
-	// }
-
 	TBB_Slicer slicer;
 	slicer.data = keys.data;
 	slicer.pivots = pivots;
-	slicer.partitions.count = processors;
+	slicer.partitions.count = partitions;
 	slicer.partitions.last = procs_lst;
 	slicer.partitions.firsts = pfirsts;
 	slicer.partitions.sizes = psizes;
 	slicer.slices.firsts = sfirsts;
 	slicer.slices.sizes = ssizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), slicer);
+	parallel_for(tbb::blocked_range<long unsigned>(0, partitions, grainsize), slicer);
 
 
 	// 	TRADE - SORT - GATHER
 	long * partfinal = new long[keys.length];
 
-	// #pragma omp parallel num_threads(processors)
-	// for (long unsigned thread = 0; thread < processors; ++thread)
-	// {
-	// 	psizes[thread] = 0;
-	// 	for (unsigned long r = 0; r < processors; ++r)
-	// 		psizes[thread] += ssizes[r * processors + thread];
-
-	// 		//debug
-	// 		// cerr << "Thread " << thread << " of " << processors << endl << '\t' << psizes[thread] << endl;
-	// 		// cerr << endl;	
-	// }
 	TBB_Trader trader;
-	trader.partitions.count = processors;
+	trader.partitions.count = partitions;
 	trader.partitions.sizes = psizes;
 	trader.slices.sizes = ssizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), trader);
+	parallel_for(tbb::blocked_range<long unsigned>(0, partitions, grainsize), trader);
 
 	pfirsts[0] = 0;
-	for (unsigned long r = 1; r < processors; ++r)
+	for (unsigned long r = 1; r < partitions; ++r)
 		pfirsts[r] = pfirsts[r-1] + psizes[r-1];
 		// //debug
 		// cerr << "Final partitions:" << endl << '\t';
-		// for (unsigned long r = 0; r < processors; ++r)
+		// for (unsigned long r = 0; r < partitions; ++r)
 		// 	cerr << pfirsts[r] << '/' << psizes[r] << ' ';
 		// cerr << endl;
 
-	// #pragma omp parallel num_threads(processors)
-	// for (long unsigned thread = 0; thread < processors; ++thread)
-	// {
-	// 	long unsigned n = pfirsts[thread];
-	// 	for (long unsigned r = 0; r < processors; ++r)
-	// 	{
-	// 		long unsigned i = r * processors + thread;
-	// 		for (long unsigned s = 0; s < ssizes[i]; ++s)
-	// 			partfinal[n++] = keys.data[sfirsts[i] + s];
-	// 	}
-
-	// 		//debug
-	// 		// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-	// 		// for (long unsigned n = 0; n < psizes[thread]; ++n)
-	// 		// 	cerr << partfinal[pfirsts[thread] + n] << ' ';
-	// 		// cerr << endl;
-
-	// 	qsort (partfinal + pfirsts[thread], psizes[thread], sizeof(long), comparel);
-	// }
-	// cerr << "Result:" << endl << '\t';
-	// for (long unsigned n = 0; n < keys.length; ++n)
-	// 	cerr << partfinal[n] << ' ';
-	// cerr << endl;
 	TBB_MergerSorter mergesorter;
 	mergesorter.data.unsorted = keys.data;
 	mergesorter.data.sorted = partfinal;
-	mergesorter.partitions.count = processors;
+	mergesorter.partitions.count = partitions;
 	mergesorter.partitions.firsts = pfirsts;
 	mergesorter.partitions.sizes = psizes;
 	mergesorter.slices.firsts = sfirsts;
 	mergesorter.slices.sizes = ssizes;
-	parallel_for(tbb::blocked_range<long unsigned>(0, processors, GRAINSIZE), mergesorter);
+	parallel_for(tbb::blocked_range<long unsigned>(0, partitions, grainsize), mergesorter);
 
 #ifdef	TK_PROFILE
 	sw.stop();
