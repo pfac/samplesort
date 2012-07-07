@@ -1,15 +1,26 @@
 CXX			=	g++
 MPICXX		=	mpic++
 #CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -std=c++0x -pedantic -O3 -I.
-CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -O3 -I.
+CXXFLAGS	=	-Wall -Wextra -Wfatal-errors -I.
 
-EXECS		=	mpi omp seq qsort
+EXECS		=	mpi omp seq tbb qsort
 
 INPUT		=	input/10M.txt 5
 
 MPINP		=	4
 
 LINK.o = $(CXX) $(TARGET_ARCH) $(LDFLAGS)
+
+
+MODE		?= 	RLS
+
+ifeq ($(MODE),DBG)
+CXXFLAGS	+=	-g
+else
+ifeq ($(MODE),RLS)
+CXXFLAGS	+=	-O3
+endif
+endif
 
 
 .PHONY:	clean test

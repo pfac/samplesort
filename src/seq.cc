@@ -76,11 +76,11 @@ int main ( int argc , char *argv[] )
 			// cerr << endl;
 		// int thread = omp_get_thread_num();
 		qsort (keys.data + pfirsts[thread], psizes[thread], sizeof(long), comparel);
-			// //debug
-			// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-			// for (long unsigned n = 0; n < psizes[thread]; ++n)
-			// 	cerr << keys.data[pfirsts[thread] + n] << ' ';
-			// cerr << endl;
+			//debug
+			cerr << "Thread " << thread << " of " << processors << endl << '\t';
+			for (long unsigned n = 0; n < psizes[thread]; ++n)
+				cerr << keys.data[pfirsts[thread] + n] << ' ';
+			cerr << endl;
 	}
 
 
@@ -108,11 +108,11 @@ int main ( int argc , char *argv[] )
 			samples[thread * processors + r] = keys.data[pfirsts[thread] + w];
 			w += samp_ints[thread * processors + r];
 		}
-			//debug
-			// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-			// for (int n = 0; n < processors; ++n)
-			// 	cerr << samples[thread * processors + n] << ' ';
-			// cerr << endl;
+			// debug
+			cerr << "Thread " << thread << " of " << processors << endl << '\t';
+			for (long unsigned n = 0; n < processors; ++n)
+				cerr << samples[thread * processors + n] << ' ';
+			cerr << endl;
 	}
 
 	delete[] samp_ints;
@@ -127,11 +127,11 @@ int main ( int argc , char *argv[] )
 
 	//	ORDER SAMPLES
 	qsort (samples, procs_sqr, sizeof(long), comparel);
-		//debug
-		// cerr << "Samples (ordered): " << endl << '\t';
-		// for (int n = 0; n < procs_sqr; ++n)
-		// 	cerr << samples[n] << ' ';
-		// cerr << endl;
+		// debug
+		cerr << "Samples (ordered): " << endl << '\t';
+		for (long unsigned n = 0; n < procs_sqr; ++n)
+			cerr << samples[n] << ' ';
+		cerr << endl;
 
 
 	//	FIND PIVOTS
@@ -140,7 +140,7 @@ int main ( int argc , char *argv[] )
 	long unsigned * piv_ints = new long unsigned[processors];
 
 	diveven (procs_sqr, processors, piv_ints);
-		//debug
+		// // debug
 		// cerr << "Pivot intervals: " << endl << '\t';
 		// for (int n = 0; n < procs_lst; ++n)
 		// 	cerr << piv_ints[n] << ' ';
@@ -153,11 +153,11 @@ int main ( int argc , char *argv[] )
 			w += piv_ints[p];
 		}
 	}
-		//debug
-		// cerr << "Pivots: " << endl << '\t';
-		// for (long unsigned n = 0; n < procs_lst; ++n)
-		// 	cerr << pivots[n] << ' ';
-		// cerr << endl;
+		// debug
+		cerr << "Pivots: " << endl << '\t';
+		for (long unsigned n = 0; n < procs_lst; ++n)
+			cerr << pivots[n] << ' ';
+		cerr << endl;
 
 	delete[] piv_ints;
 
@@ -203,16 +203,16 @@ int main ( int argc , char *argv[] )
 			// 	cerr << sfirsts[l + n] << '/' << ssizes[l + n]<< ' ';
 			// cerr << endl;	
 
-			//debug
-			// cerr << "Thread " << thread << " of " << processors << endl;
-			// for (long unsigned s = 0; s < processors; ++s)
-			// {
-			// 	cerr << "\tSlice " << s << endl << "\t\t";
-			// 	for (long unsigned n = 0; n < ssizes[l + s]; ++n)
-			// 		cerr << keys.data[sfirsts[l + s] + n] << ' ';
-			// 	cerr << endl;
-			// }
-			// cerr << endl;
+			// debug
+			cerr << "Thread " << thread << " of " << processors << endl;
+			for (long unsigned s = 0; s < processors; ++s)
+			{
+				cerr << "\tSlice " << s << endl << "\t\t";
+				for (long unsigned n = 0; n < ssizes[l + s]; ++n)
+					cerr << keys.data[sfirsts[l + s] + n] << ' ';
+				cerr << endl;
+			}
+			cerr << endl;
 	}
 
 
@@ -225,19 +225,19 @@ int main ( int argc , char *argv[] )
 		for (unsigned long r = 0; r < processors; ++r)
 			psizes[thread] += ssizes[r * processors + thread];
 
-			//debug
-			// cerr << "Thread " << thread << " of " << processors << endl << '\t' << psizes[thread] << endl;
-			// cerr << endl;	
+			// debug
+			cerr << "Thread " << thread << " of " << processors << endl << '\t' << psizes[thread] << endl;
+			cerr << endl;	
 	}
 
 	pfirsts[0] = 0;
 	for (unsigned long r = 1; r < processors; ++r)
 		pfirsts[r] = pfirsts[r-1] + psizes[r-1];
-		// //debug
-		// cerr << "Final partitions:" << endl << '\t';
-		// for (unsigned long r = 0; r < processors; ++r)
-		// 	cerr << pfirsts[r] << '/' << psizes[r] << ' ';
-		// cerr << endl;
+		// debug
+		cerr << "Final partitions:" << endl << '\t';
+		for (unsigned long r = 0; r < processors; ++r)
+			cerr << pfirsts[r] << '/' << psizes[r] << ' ';
+		cerr << endl;
 
 	// #pragma omp parallel num_threads(processors)
 	for (long unsigned thread = 0; thread < processors; ++thread)
@@ -250,11 +250,11 @@ int main ( int argc , char *argv[] )
 				partfinal[n++] = keys.data[sfirsts[i] + s];
 		}
 
-			//debug
-			// cerr << "Thread " << thread << " of " << processors << endl << '\t';
-			// for (long unsigned n = 0; n < psizes[thread]; ++n)
-			// 	cerr << partfinal[pfirsts[thread] + n] << ' ';
-			// cerr << endl;
+			// debug
+			cerr << "Thread " << thread << " of " << processors << endl << '\t';
+			for (long unsigned n = 0; n < psizes[thread]; ++n)
+				cerr << partfinal[pfirsts[thread] + n] << ' ';
+			cerr << endl;
 
 		qsort (partfinal + pfirsts[thread], psizes[thread], sizeof(long), comparel);
 	}
