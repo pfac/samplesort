@@ -242,11 +242,17 @@ int main ( int argc , char *argv[] )
 	long unsigned partitions = strtoul( argv[2] , NULL , 0 );
 
 	//	Initialize task scheduler
+	long unsigned threads;
 	if (argc > 3) {
-		long unsigned threads = strtoul(argv[3], NULL, 0);
-		tbb::task_scheduler_init init(threads);
-	} else
-		tbb::task_scheduler_init init;
+		threads = strtoul(argv[3], NULL, 0);
+	} else {
+		threads = tbb::task_scheduler_init::default_num_threads();
+	}
+	if (threads > partitions)
+		threads = partitions;
+	tbb::task_scheduler_init init(threads);
+	cerr << "Running with " << threads << " threads." << endl;
+	// tbb::task_scheduler_init init(partitions);
 	
 		// // debug
 		// tbb::task_scheduler_init init(1);
